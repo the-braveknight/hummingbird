@@ -7,7 +7,6 @@
 //
 
 import AsyncHTTPClient
-import Foundation
 import HTTPTypes
 import Hummingbird
 import HummingbirdCore
@@ -18,6 +17,12 @@ import NIOPosix
 import NIOSSL
 import ServiceLifecycle
 import UnixSignals
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 
 /// Test using a live server and AsyncHTTPClient as a client
 @available(hummingbird 2.0, *)
@@ -216,11 +221,12 @@ extension HTTPFields {
         self.reserveCapacity(count)
         var firstHost = true
         for field in oldHeaders {
-            if firstHost, field.name.caseInsensitiveCompare("host") == .orderedSame {
+            let name = HTTPField.Name(field.name)
+            if firstHost, field.name.lowercased() == "host" {
                 firstHost = false
                 continue
             }
-            if let name = HTTPField.Name(field.name) {
+            if let name {
                 if splitCookie, name == .cookie, #available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *) {
                     self.append(
                         contentsOf: field.value.split(separator: "; ", omittingEmptySubsequences: false).map {

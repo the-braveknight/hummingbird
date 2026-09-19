@@ -6,7 +6,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 
+#if canImport(FoundationEssentials)
+public import FoundationEssentials
+#else
 public import Foundation
+#endif
 
 /// The wrapper struct for encoding Codable classes to URL encoded form data
 @available(hummingbird 2.0, *)
@@ -24,9 +28,6 @@ public struct URLEncodedFormEncoder: Sendable {
 
         /// Encode the `Date` as an ISO-8601-formatted string (in RFC 3339 format).
         case iso8601
-
-        /// Encode the `Date` as a string parsed by the given formatter.
-        case formatted(DateFormatter)
 
         /// Encode the `Date` as a custom value encoded by the given closure.
         case custom(@Sendable (Date, any Encoder) throws -> Void)
@@ -325,8 +326,6 @@ extension _URLEncodedFormEncoder {
             try self.encode(Double(date.timeIntervalSince1970).description)
         case .iso8601:
             try self.encode(date.formatted(.iso8601))
-        case .formatted(let formatter):
-            try self.encode(formatter.string(from: date))
         case .custom(let closure):
             try closure(date, self)
         }
